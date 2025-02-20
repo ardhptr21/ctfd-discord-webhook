@@ -2,7 +2,7 @@ from flask import request
 from flask.wrappers import Response
 from CTFd.utils.dates import ctftime
 from CTFd.models import Challenges, Solves
-from CTFd.utils import config as ctfd_config
+from CTFd.utils import config as ctfd_config, get_config
 from CTFd.utils.user import get_current_team, get_current_user
 from discord_webhook import DiscordWebhook, DiscordEmbed
 from functools import wraps
@@ -22,29 +22,32 @@ sanitize = lambda m: sanreg.sub(r"\1", m)
 
 topConfig = {
     1: {
-        "color": 0xff0000,
+        "color": 0xFF0000,
         "title": "**[ :first_place: FIRST BLOOD :drop_of_blood: ]**",
-        "img_url": "https://i.ibb.co.com/rR9s18Hj/Banner-First-Blood.png"
+        "img_url": "https://i.ibb.co.com/rR9s18Hj/Banner-First-Blood.png",
     },
     2: {
-        "color": 0xc3baad,
+        "color": 0xC3BAAD,
         "title": "**[ :second_place: SECOND BLOOD :drop_of_blood: ]**",
-        "img_url": "https://i.ibb.co.com/XfLZyZdJ/Banner-Second-Blood.png"
+        "img_url": "https://i.ibb.co.com/XfLZyZdJ/Banner-Second-Blood.png",
     },
     3: {
-        "color": 0xffaf3b,
+        "color": 0xFFAF3B,
         "title": "**[ :third_place: THIRD BLOOD :drop_of_blood: ]**",
-        "img_url": "https://i.ibb.co.com/9Qq1Ybx/Banner-Third-Blood.png"
+        "img_url": "https://i.ibb.co.com/9Qq1Ybx/Banner-Third-Blood.png",
     },
 }
 defaultmessage = (
     "Congratulations to team {team} for the {fsolves} solve on challenge {challenge}!"
 )
 
+defaultfreezemessage = "Congratulations to team :ice_cube: for the {fsolves} solve on challenge {challenge}!"
+
 
 def load(app):
     config(app)
     TEAMS_MODE = ctfd_config.is_teams_mode()
+    freeze = get_config("freeze")
 
     if not app.config["DISCORD_WEBHOOK_URL"]:
         print("No DISCORD_WEBHOOK_URL set! Plugin disabled.")
@@ -102,14 +105,36 @@ def load(app):
 
                     embed = DiscordEmbed()
                     if num_solves > 3:
-                        message = defaultmessage.format(**format_args)
+                        if freeze:
+                            message = defaultfreezemessage.format(**format_args)
+                        else:
+                            message = defaultmessage.format(**format_args)
                         embed.set_description(message)
                     else:
-                        embed.add_embed_field(":game_die: Challenge", format_args["challenge"], inline=False)
-                        embed.add_embed_field(":flags: Team", format_args["team"], inline=False)
-                        embed.add_embed_field(":ninja: By", format_args["user"], inline=False)
+                        embed.add_embed_field(
+                            ":game_die: Challenge",
+                            format_args["challenge"],
+                            inline=False,
+                        )
+                        if freeze:
+                            embed.add_embed_field(
+                                ":flags: Team", ":ice_cube:", inline=False
+                            )
+                            embed.add_embed_field(
+                                ":ninja: By", ":cold_face:", inline=False
+                            )
+                        else:
+                            embed.add_embed_field(
+                                ":flags: Team", format_args["team"], inline=False
+                            )
+                            embed.add_embed_field(
+                                ":ninja: By", format_args["user"], inline=False
+                            )
                         conf = topConfig.get(num_solves, {})
-                        embed.set_color(conf.get("color", 0x00ff00))
+                        if freeze:
+                            embed.set_color(0x00ACFA)
+                        else:
+                            embed.set_color(conf.get("color", 0x00FF00))
                         embed.set_title(conf.get("title", ""))
                         embed.set_image(url=conf.get("img_url", ""))
                     webhook.add_embed(embed)
