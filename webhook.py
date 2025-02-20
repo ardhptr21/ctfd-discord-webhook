@@ -118,10 +118,10 @@ def load(app):
                         )
                         if freeze:
                             embed.add_embed_field(
-                                ":flags: Team", ":ice_cube:", inline=False
+                                ":flags: Team", "Frozen :ice_cube:", inline=False
                             )
                             embed.add_embed_field(
-                                ":ninja: By", ":cold_face:", inline=False
+                                ":ninja: By", "Frozen :cold_face:", inline=False
                             )
                         else:
                             embed.add_embed_field(
