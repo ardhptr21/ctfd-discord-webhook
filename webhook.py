@@ -47,7 +47,6 @@ defaultfreezemessage = "Congratulations to team :ice_cube: for the {fsolves} sol
 def load(app):
     config(app)
     TEAMS_MODE = ctfd_config.is_teams_mode()
-    freeze = get_config("freeze")
 
     if not app.config["DISCORD_WEBHOOK_URL"]:
         print("No DISCORD_WEBHOOK_URL set! Plugin disabled.")
@@ -103,6 +102,7 @@ def load(app):
                         "category": sanitize(challenge.category),
                     }
 
+                    freeze = get_config("freeze")
                     embed = DiscordEmbed()
                     if num_solves > 3:
                         if freeze:
